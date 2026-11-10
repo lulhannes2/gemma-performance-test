@@ -1,0 +1,67 @@
+version: '3.8'
+
+services:
+  gemma-26b:
+    build: .
+    container_name: gemma-26b-inference
+    image: gemma-inference:26b
+    runtime: nvidia
+    environment:
+      - CUDA_VISIBLE_DEVICES=0
+      - MODEL_NAME=google/gemma-2-26b
+      - GPU_MEMORY_UTILIZATION=0.95
+      - MAX_MODEL_LEN=32768
+      - PORT=8000
+      - HOST=0.0.0.0
+      - LOG_DIR=/app/logs
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./logs:/app/logs
+      - ./huggingface_cache:/root/.cache/huggingface  # Cache models locally
+    devices:
+      - /dev/nvidia0:/dev/nvidia0  # GPU access
+    shm_size: 100gb  # Max shared memory for vLLM (out of 128GB available)
+    mem_limit: 120gb  # Limit to 120GB, leave 8GB for system
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  gemma-31b:
+    build: .
+    container_name: gemma-31b-inference
+    image: gemma-inference:31b
+    runtime: nvidia
+    environment:
+      - CUDA_VISIBLE_DEVICES=0
+      - MODEL_NAME=google/gemma-2-31b
+      - GPU_MEMORY_UTILIZATION=0.95
+      - MAX_MODEL_LEN=32768
+      - PORT=8001
+      - HOST=0.0.0.0
+      - LOG_DIR=/app/logs
+    ports:
+      - "8001:8001"
+    volumes:
+      - ./logs:/app/logs
+      - ./huggingface_cache:/root/.cache/huggingface
+    devices:
+      - /dev/nvidia0:/dev/nvidia0
+    shm_size: 100gb  # Max shared memory for vLLM
+    mem_limit: 120gb  # Limit to 120GB, leave 8GB for system
+    restart: unless-stopped
+    profiles:
+      - "31b"  # Only runs if --profile 31b is specified
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+volumes:
+  huggingface_cache:
