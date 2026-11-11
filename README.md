@@ -167,6 +167,17 @@ python monitor_gpu.py
 python check_gpu_clocks.py
 ```
 
+### PCIe Bottleneck Status
+```bash
+# Check if GPU has PCIe bottleneck (critical for performance)
+/usr/bin/nvidia-smi -i 0 -q | grep -A 2 "Link Width"
+
+# Expected output:
+# Link Width
+# Max                                    : 16x
+# Current                                : 16x ✅ (optimal) or 1x ❌ (bottleneck)
+```
+
 ### Container Stats
 ```bash
 docker stats gemma-26b-inference
